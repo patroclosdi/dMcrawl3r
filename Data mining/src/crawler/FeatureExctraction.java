@@ -241,7 +241,7 @@ public class FeatureExctraction {
 			out.write("@ATTRIBUTE exclamationMarks\t NUMERIC\n");
 			out.write("@ATTRIBUTE questionMarks\t NUMERIC\n");
 			out.write("@ATTRIBUTE quotationMarks\t NUMERIC\n");
-			out.write("@ATTRIBUTE retweets\t NUMERIC\n");
+			out.write("@ATTRIBUTE retweets\t NUMERIC\n");	
 			out.write("@ATTRIBUTE uperCaseLetters\t NUMERIC\n");
 			out.write("@ATTRIBUTE lowerCaseLettrers\t NUMERIC\n");
 			out.write("@ATTRIBUTE positiveEmotions\t NUMERIC\n");
@@ -272,7 +272,7 @@ public class FeatureExctraction {
 							else if (cur > 'A' && cur < 'Z') uppercase++;
 						}
 						
-						//save TweetID,UserID
+						//save     TweetID,UserID
 						text=temp.split("\t")[1]+ comma +temp.split("\t")[0] + comma;
 						
 						//save followers,following
