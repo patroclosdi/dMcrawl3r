@@ -19,7 +19,7 @@ public class Crawler {
 		//Consumers Key and Secret for verification
 		String consumerkey = "9lLzthA7K6NvcoUIpGI40g";
 		String consumersecret = "qmUCMLcb7nNztsVm0dBq3aWifEbGWWfFsNltuYK8VQ";		
-		Twitter twitter;
+		Twitter twitter; //create a new object
 
 		
 		twitter = new TwitterFactory().getInstance(); // Initialize twitter Object
