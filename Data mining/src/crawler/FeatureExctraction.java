@@ -19,18 +19,19 @@ public class FeatureExctraction {
 	
 	private Twitter twitter;
 	private BufferedReader firstfile;
-	private BufferedReader secondfile;
 	private BufferedReader positiveEmotFile;
 	private BufferedReader negativeEmotFile;
 	private BufferedReader positiveWordFile;
 	private BufferedReader negativeWordFile;
+	private BufferedReader denialWordFile;
 	
 	private ArrayList<String> positiveEmotList;
 	private ArrayList<String> negativeEmotList;
 	private ArrayList<String> positiveWordList;
 	private ArrayList<String> negativeWordList;
+	private ArrayList<String> denialWordList;
 	
-	public FeatureExctraction(Twitter twitter,String fl1,String fl2){
+	public FeatureExctraction(Twitter twitter,String fl1){
 	
 		this.twitter=twitter;
 		FileInputStream file=null;
@@ -41,15 +42,6 @@ public class FeatureExctraction {
 		}
 		DataInputStream stream = new DataInputStream(file);
 		this.firstfile = new BufferedReader(new InputStreamReader(stream));
-		
-		file=null;
-		try {
-			file = new FileInputStream(fl2);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		stream = new DataInputStream(file);
-		this.secondfile = new BufferedReader(new InputStreamReader(stream));
 		
 		listInitialization();	
 	}
@@ -105,6 +97,7 @@ public class FeatureExctraction {
 		
 		
 		// open the file with the positive words
+		//http://www.psychpage.com/learning/library/assess/feelings.html
 		file = null;
 		try {
 			file = new FileInputStream("./positiveWords");
@@ -127,6 +120,7 @@ public class FeatureExctraction {
 		
 		
 		// open the file with the negative words
+		//http://www.enchantedlearning.com/wordlist/negativewords.shtml
 		file = null;
 		try {
 			file = new FileInputStream("./negativeWords");
@@ -146,6 +140,30 @@ public class FeatureExctraction {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		
+		file = null;
+		try {
+			file = new FileInputStream("./denial");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		stream = new DataInputStream(file);
+		this.denialWordFile= new BufferedReader(new InputStreamReader(stream));
+		
+		denialWordList = new ArrayList<String>();
+		try {
+			// read every word
+			while ((word = denialWordFile.readLine()) != null) {
+			// and put it in the list
+			denialWordList.add(word);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		
+		
 		
 	}
 	
@@ -192,6 +210,15 @@ public class FeatureExctraction {
 					if (numb.length > 0) founds += numb.length - 1;
 				}
 				break;
+			case ("denialWords"):
+				for (i = 0; i != denialWordList.size(); ++i) {
+					word = denialWordList.get(i);
+					word = makeOutRegex(word);
+					numb = tweet.split(word);
+					if (numb.length > 0) founds += numb.length - 1;
+				}
+				break;
+				
 		}
 		return founds;
 	}
@@ -246,11 +273,15 @@ public class FeatureExctraction {
 			out.write("@ATTRIBUTE lowerCaseLettrers\t NUMERIC\n");
 			out.write("@ATTRIBUTE positiveEmotions\t NUMERIC\n");
 			out.write("@ATTRIBUTE negativeEmotions\t NUMERIC\n");
-			out.write("@DATA\n");	
+			out.write("@ATTRIBUTE class\t {-1, 0, 1}\n");
+			out.write("\n@DATA\n");	
 			
 			
 			String text=null,temp=null;
-			while((temp=firstfile.readLine()) != null){
+			int c = 1;
+
+			while((temp=firstfile.readLine()) != null && c<=150){
+				
 				exists=true;
 				try{
 					status = this.twitter.showStatus(Long.parseLong(temp.split("\t")[1]));
@@ -260,6 +291,7 @@ public class FeatureExctraction {
 				}
 				finally{
 					if(exists){
+		            	c++;
 						exclMarks = questMarks = lowercase = uppercase = quotMarks = 0;
 						tweet = status.getText();
 			
@@ -284,15 +316,10 @@ public class FeatureExctraction {
 						// user reference
 						String temp2[]=status.getText().split("@");
 						int counter=0;
-						for(int i=1;i<temp2.length;i++){
-							try {
-								temp2[i]=temp2[i].replace(":","");
-								temp2[i]=temp2[i].replace(".","");
-								if(this.twitter.getUserLists(temp2[i].split("\\s")[0])!=null){
-									counter++;
-								}
-							} catch (TwitterException e) {																
-							}
+						for (int i = 1; i < temp2.length; i++ ) {
+							if ((temp2[i].charAt(0) >= 'a' && temp2[i].charAt(0) <= 'z') || (temp2[i].charAt(0) >= 'A' && temp2[i].charAt(0) <= 'Z') || temp2[i].charAt(0) >= '0' && temp2[i].charAt(0) <= '9' ){ 
+								counter++;
+							}	
 						}
 						text = text + Integer.toString(counter) + comma;
 						
@@ -309,6 +336,7 @@ public class FeatureExctraction {
 						text = text + Integer.toString(checkFor("negativeWords", tweet)) + comma;
 						
 						// denials
+						text = text + Integer.toString(checkFor("denialWords", tweet)) + comma;
 						
 						// exclamations marks
 						text = text + Integer.toString(exclMarks) + comma;
@@ -333,10 +361,17 @@ public class FeatureExctraction {
 						
 						// negative emoticons
 						text = text + Integer.toString(checkFor("negativeEmoticons", tweet)) + comma;
-						
-						System.out.println("text: " + tweet);
-						System.out.println("features: " + text);
-						System.out.println();
+						text = text + Integer.parseInt(temp.split("\t")[2]) + "\n"; 
+						out.write(text);
+//						System.out.println("counter: "+c+"   text: " + tweet);						
+//						System.out.println("id: " + status.getId());
+//						System.out.println();
+//			            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+//			            String password = stdin.readLine();
+//			            if(!password.equals("5")){
+//			            	text = text + Integer.parseInt(password) + "\n";		            	
+//			            	out.write(text);
+//			            }	
 					}
 			}	
 			}
@@ -344,20 +379,21 @@ public class FeatureExctraction {
 			e.printStackTrace();
 		}
 		finally{
-			// if(fstream != null) {
-			// try {
-			// fstream.close();
-			// } catch (IOException e) {
-			// e.printStackTrace();
-			// }
-			// }
-			// if(out != null) {
-			// try {
-			// out.close();
-			// } catch (IOException e) {
-			// e.printStackTrace();
-			// }
-			// }
+			 if(out != null) {
+				 try {
+					 out.close();
+				 } catch (IOException e) {
+					 e.printStackTrace();
+				 }
+			 }
+			
+			 if(fstream != null) {
+				 try {
+					 fstream.close();
+				 } catch (IOException e) {
+					 e.printStackTrace();
+				 }
+			 }
 		}	
 	}
 	
@@ -366,7 +402,6 @@ public class FeatureExctraction {
 	public void closeresources(){
 		try {
 			firstfile.close();
-			secondfile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -34,7 +34,7 @@ public class SentimentAnalysis {
 		
 		String temp;
 		Status status=null;
-		int counter=0;
+		int counter=1;
 		boolean exists;
 		FileWriter fstream=null;
 		BufferedWriter out=null;
@@ -42,10 +42,7 @@ public class SentimentAnalysis {
 				
 		
 		try {
-			// fstream = new FileWriter("sentimentanalysis.txt");
-			// out = new BufferedWriter(fstream);
-			                
-			while(((temp =reader.readLine()) != null)&&(counter<10)){
+			while(((temp =reader.readLine()) != null)){
 				exists=true;
 				try{
 					status = this.twitter.showStatus(Long.parseLong(temp.split("\t")[1]));
@@ -55,9 +52,7 @@ public class SentimentAnalysis {
 				}
 				finally{
 					if(exists){
-						System.out.println("\n"+status.getUser().getName() + " " + status.getText());
-
-						//out.write(temp.split("\t")[0]+"\t"+temp.split("\t")[1]+"\t"+result);
+						System.out.println(counter+" "+status.getText() + " " + temp.split("\t")[2]+"\n");
 						counter++;
 					}	
 				}
@@ -67,22 +62,7 @@ public class SentimentAnalysis {
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		}
-		finally{
-			// if(fstream != null) {
-			// try {
-			// fstream.close();
-			// } catch (IOException e) {
-			// e.printStackTrace();
-			// }
-			// }
-			// if(out != null) {
-			// try {
-			// out.close();
-			// } catch (IOException e) {
-			// e.printStackTrace();
-			// }
-			// }
-		}
+		finally{}
 	}
 	
 	
