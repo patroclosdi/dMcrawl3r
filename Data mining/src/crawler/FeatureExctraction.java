@@ -271,16 +271,16 @@ public class FeatureExctraction {
 			out.write("@ATTRIBUTE retweets\t NUMERIC\n");	
 			out.write("@ATTRIBUTE uperCaseLetters\t NUMERIC\n");
 			out.write("@ATTRIBUTE lowerCaseLettrers\t NUMERIC\n");
-			out.write("@ATTRIBUTE positiveEmotions\t NUMERIC\n");
-			out.write("@ATTRIBUTE negativeEmotions\t NUMERIC\n");
+			out.write("@ATTRIBUTE positiveEmoticons\t NUMERIC\n");
+			out.write("@ATTRIBUTE negativeEmoticons\t NUMERIC\n");
 			out.write("@ATTRIBUTE class\t {-1, 0, 1}\n");
 			out.write("\n@DATA\n");	
 			
 			
 			String text=null,temp=null;
-			int c = 1;
+			int c = 1,z=150;
 
-			while((temp=firstfile.readLine()) != null && c<=150){
+			while((temp=firstfile.readLine()) != null && c<=z){
 				
 				exists=true;
 				try{
@@ -291,7 +291,6 @@ public class FeatureExctraction {
 				}
 				finally{
 					if(exists){
-		            	c++;
 						exclMarks = questMarks = lowercase = uppercase = quotMarks = 0;
 						tweet = status.getText();
 			
@@ -361,20 +360,20 @@ public class FeatureExctraction {
 						
 						// negative emoticons
 						text = text + Integer.toString(checkFor("negativeEmoticons", tweet)) + comma;
-						text = text + Integer.parseInt(temp.split("\t")[2]) + "\n"; 
+
+						//sentiment class {-1,0,1}
+						text = text + temp.split("\t")[2] + "\n";
+						
+						//write result to arff file
 						out.write(text);
-//						System.out.println("counter: "+c+"   text: " + tweet);						
-//						System.out.println("id: " + status.getId());
-//						System.out.println();
-//			            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-//			            String password = stdin.readLine();
-//			            if(!password.equals("5")){
-//			            	text = text + Integer.parseInt(password) + "\n";		            	
-//			            	out.write(text);
-//			            }	
+						System.out.println("Tweet "+c+" crawled");
 					}
+					else{
+						System.out.println("Tweet "+c+" - "+temp.split("\t")[1]+" doesn't exist");
+					}
+					c++;
+				}
 			}	
-			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

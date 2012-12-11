@@ -24,8 +24,6 @@ public class Crawler {
 		
 		twitter = new TwitterFactory().getInstance(); // Initialize twitter Object
 		twitter.setOAuthConsumer(consumerkey, consumersecret); //get verification
-		RequestToken requestToken = twitter.getOAuthRequestToken();
-		AccessToken accessToken = null;
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 	
 		
