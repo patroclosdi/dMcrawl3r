@@ -212,6 +212,7 @@ public class FeatureExctraction {
 									founds[1]++;
 						}	
 					}	
+					
 				}
 				break;
 			case ("negativeWords"):
