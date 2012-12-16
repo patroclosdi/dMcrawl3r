@@ -167,9 +167,11 @@ public class FeatureExctraction {
 		
 	}
 	
-	private int checkFor(String name, String tweet) {
+	private Integer[] checkFor(String name, String tweet) {
 		int i;
-		int founds = 0;
+		Integer founds[] = new Integer[2];
+		founds[0]=0;
+		founds[1]=0;
 		String word;
 		String[] numb;
 		
@@ -181,33 +183,52 @@ public class FeatureExctraction {
 					word = positiveEmotList.get(i);
 					word = makeOutRegex(word);
 					// split the tweet around emo
+					tweet = tweet.toLowerCase();
 					numb = tweet.split(word);
 					// the number of emo found is numb.lenght - 1
-					if (numb.length > 0) founds += numb.length - 1;
+					if (numb.length > 0) founds[0] += numb.length - 1;
 				}
 				break;
 			case ("negativeEmoticons"):
 				for (i = 0; i != negativeEmotList.size(); ++i) {
 					word = negativeEmotList.get(i);
 					word = makeOutRegex(word);
+					tweet = tweet.toLowerCase();
 					numb = tweet.split(word);
-					if (numb.length > 0) founds += numb.length - 1;
+					if (numb.length > 0) founds[0] += numb.length - 1;
 				}
 				break;
 			case ("positiveWords"):
 				for (i = 0; i != positiveWordList.size(); ++i) {
 					word = positiveWordList.get(i);
 					word = makeOutRegex(word);
+					tweet = tweet.toLowerCase();
 					numb = tweet.split(word);
-					if (numb.length > 0) founds += numb.length - 1;
+					if (numb.length > 0){
+						founds[0] += numb.length - 1;
+						for(int j = 0 ; j < numb.length ; j++){
+							if(numb[j].length()>0)
+								if(numb[j].charAt(0)==word.charAt(word.length()-1))
+									founds[1]++;
+						}	
+					}	
 				}
 				break;
 			case ("negativeWords"):
 				for (i = 0; i != negativeWordList.size(); ++i) {
 					word = negativeWordList.get(i);
 					word = makeOutRegex(word);
+					tweet = tweet.toLowerCase();
 					numb = tweet.split(word);
-					if (numb.length > 0) founds += numb.length - 1;
+					if (numb.length > 0){
+						founds[0] += numb.length - 1;
+						for(int j = 0 ; j < numb.length ; j++){
+							if(numb[j].length()>0)
+								if(numb[j].charAt(0)==word.charAt(word.length()-1))
+									founds[1]++;
+						}
+					}
+
 				}
 				break;
 			case ("denialWords"):
@@ -215,10 +236,9 @@ public class FeatureExctraction {
 					word = denialWordList.get(i);
 					word = makeOutRegex(word);
 					numb = tweet.split(word);
-					if (numb.length > 0) founds += numb.length - 1;
+					if (numb.length > 0) founds[0] += numb.length - 1;
 				}
-				break;
-				
+				break;				
 		}
 		return founds;
 	}
@@ -263,7 +283,9 @@ public class FeatureExctraction {
 			out.write("@ATTRIBUTE userReference\t NUMERIC\n");
 			out.write("@ATTRIBUTE links\t NUMERIC\n");
 			out.write("@ATTRIBUTE positiveWords\t NUMERIC\n");
+			out.write("@ATTTIBUTE positiverepeats\t NUMERIC\n");
 			out.write("@ATTRIBUTE negativeWords\t NUMERIC\n");
+			out.write("@ATTTIBUTE negativerepeats\t NUMERIC\n");
 			out.write("@ATTRIBUTE denials\t NUMERIC\n");
 			out.write("@ATTRIBUTE exclamationMarks\t NUMERIC\n");
 			out.write("@ATTRIBUTE questionMarks\t NUMERIC\n");
@@ -273,13 +295,20 @@ public class FeatureExctraction {
 			out.write("@ATTRIBUTE lowerCaseLettrers\t NUMERIC\n");
 			out.write("@ATTRIBUTE positiveEmoticons\t NUMERIC\n");
 			out.write("@ATTRIBUTE negativeEmoticons\t NUMERIC\n");
+			out.write("@ATTRIBUTE positiveabbreviations\t NUMERIC\n");
+			out.write("@ATTTIBUTE hashtags\t NUMERIC\n");
 			out.write("@ATTRIBUTE class\t {-1, 0, 1}\n");
 			out.write("\n@DATA\n");	
 			
 			
 			String text=null,temp=null;
 			int c = 1,z=150;
-
+			Integer[] positivemotions = new Integer[2];
+			Integer[] negativemotions = new Integer[2];
+			Integer[] positive = new Integer[2];
+			Integer[] negative = new Integer[2];
+			Integer[] denials = new Integer[2];
+			
 			while((temp=firstfile.readLine()) != null && c<=z){
 				
 				exists=true;
@@ -293,7 +322,7 @@ public class FeatureExctraction {
 					if(exists){
 						exclMarks = questMarks = lowercase = uppercase = quotMarks = 0;
 						tweet = status.getText();
-			
+						System.out.println(tweet);
 						for (int i = 0; i != tweet.length(); ++i) {
 							cur = tweet.charAt(i);
 							if (cur == '!') exclMarks++;
@@ -329,13 +358,22 @@ public class FeatureExctraction {
 						
 						
 						// positive words
-						text = text + Integer.toString(checkFor("positiveWords", tweet)) + comma;
+						positive = checkFor("positiveWords", tweet);
+						text = text + Integer.toString(positive[0]) + comma;
 						
+						// positive repeats
+						text = text + Integer.toString(positive[1]) + comma;
+									
 						// negative words
-						text = text + Integer.toString(checkFor("negativeWords", tweet)) + comma;
+						negative = checkFor("negativeWords", tweet);
+						text = text + Integer.toString(negative[0]) + comma;
+						
+						//negative repeats
+						text = text + Integer.toString(negative[1]) + comma;
 						
 						// denials
-						text = text + Integer.toString(checkFor("denialWords", tweet)) + comma;
+						denials = checkFor("denialWords", tweet);
+						text = text + Integer.toString(denials[0]) + comma;
 						
 						// exclamations marks
 						text = text + Integer.toString(exclMarks) + comma;
@@ -356,11 +394,34 @@ public class FeatureExctraction {
 						text = text + Integer.toString(lowercase) + comma;
 						
 						// positive emoticons
-						text = text + Integer.toString(checkFor("positiveEmoticons", tweet)) + comma;
+						positivemotions = checkFor("positiveEmoticons", tweet) ; 
+						text = text + Integer.toString(positivemotions[0]) + comma;
 						
 						// negative emoticons
-						text = text + Integer.toString(checkFor("negativeEmoticons", tweet)) + comma;
-
+						negativemotions = checkFor("negativeEmoticons", tweet);
+						text = text + Integer.toString(negativemotions[0]) + comma;
+						
+						//positive abbreviations 
+						temp2=null;
+						int tempcounter=0;
+						temp2 = status.getText().toLowerCase().split("l(oo*)l");
+						tempcounter = tempcounter + (temp2.length -1);
+						temp2 = status.getText().toLowerCase().split("l(uu*)(ll*)z");
+						tempcounter = tempcounter + (temp2.length -1);
+						temp2 = status.getText().toLowerCase().split("t(rr*)(oo*)l");
+						tempcounter = tempcounter + (temp2.length -1);
+						temp2 = status.getText().toLowerCase().split("l(mm*)(aa*)o");
+						tempcounter = tempcounter + (temp2.length -1);
+						temp2 = status.getText().toLowerCase().split("r(oo*)(ll*)f");
+						tempcounter = tempcounter + (temp2.length -1);
+						text = text + Integer.toString(tempcounter) + comma;
+												
+						//hash tags
+						temp2=null;
+						temp2=status.getText().split("#");
+						text = text + Integer.toString(temp2.length-1) + comma;
+						
+						
 						//sentiment class {-1,0,1}
 						text = text + temp.split("\t")[2] + "\n";
 						

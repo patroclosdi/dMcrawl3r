@@ -40,9 +40,9 @@ public class SentimentAnalysis {
 		BufferedWriter out=null;
 		
 				
-		
+		int counter1=1;
 		try {
-			while(((temp =reader.readLine()) != null)){
+			while(((temp =reader.readLine()) != null)&&(counter<150)){
 				exists=true;
 				try{
 					status = this.twitter.showStatus(Long.parseLong(temp.split("\t")[1]));
@@ -54,7 +54,8 @@ public class SentimentAnalysis {
 					if(exists){
 						System.out.println(counter+" "+status.getText() + " " + temp.split("\t")[2]+"\n");
 						counter++;
-					}	
+					}
+					counter1++;
 				}
 			}	
 		} catch (IOException e) {
